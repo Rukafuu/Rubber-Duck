@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  code, pre, kbd, samp {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+}
+
+/* Custom Sleek Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* Material Icons vertically centered */
+.mat-icon {
+  font-family: 'Material Icons' !important;
+  font-weight: normal;
+  font-style: normal;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+}
+
+
+/* Rubber Duck visual system: a light workbench by default, focused dark console on demand. */
+.app-shell { --duck-accent: #2563eb; }
+.theme-light { color-scheme: light; }
+.theme-light .bg-zinc-950 { background-color: #f8fafc !important; }
+.theme-light .bg-zinc-950\/40 { background-color: #f1f5f9 !important; }
+.theme-light .bg-zinc-900 { background-color: #ffffff !important; }
+.theme-light .bg-zinc-900\/40 { background-color: #f8fafc !important; }
+.theme-light .bg-zinc-800 { background-color: #eef2f7 !important; }
+.theme-light .bg-zinc-700 { background-color: #e2e8f0 !important; }
+.theme-light .border-zinc-800, .theme-light .border-zinc-800\/80 { border-color: #e2e8f0 !important; }
+.theme-light .border-zinc-700 { border-color: #cbd5e1 !important; }
+.theme-light .text-zinc-100 { color: #172033 !important; }
+.theme-light .text-zinc-200 { color: #273449 !important; }
+.theme-light .text-zinc-300 { color: #475569 !important; }
+.theme-light .text-zinc-400 { color: #64748b !important; }
+.theme-light .text-zinc-500, .theme-light .text-zinc-600 { color: #94a3b8 !important; }
+.theme-light .text-emerald-400, .theme-light .text-emerald-300 { color: #0f766e !important; }
+.theme-light .text-sky-400, .theme-light .text-sky-300 { color: #2563eb !important; }
+.theme-light .text-amber-400, .theme-light .text-amber-300 { color: #b45309 !important; }
+.theme-light .bg-emerald-600 { background-color: #0f766e !important; }
+.theme-light .hover\:bg-emerald-500:hover { background-color: #0d9488 !important; }
+.theme-light .focus\:border-emerald-500:focus { border-color: #0f766e !important; }
+.theme-light .theme-toggle { background: #fff; border-color: #cbd5e1; color: #334155; }
+.theme-dark { color-scheme: dark; }
+.theme-dark .theme-toggle { background: #101827; border-color: #334155; color: #cbd5e1; }
+.theme-dark .bg-zinc-950 { background-color: #0b1018 !important; }
+.theme-dark .bg-zinc-900 { background-color: #111923 !important; }
+.theme-dark .border-zinc-800 { border-color: #263241 !important; }
+.app-shell header { min-height: 64px; }
+.app-shell h1, .app-shell h2, .app-shell h3 { letter-spacing: -0.025em; }
+.app-shell button:focus-visible, .app-shell a:focus-visible, .app-shell input:focus-visible, .app-shell textarea:focus-visible { outline: 2px solid var(--duck-accent); outline-offset: 2px; }
