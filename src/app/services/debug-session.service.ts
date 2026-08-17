@@ -15,6 +15,7 @@ import {
 import { AiDebugService } from './ai-debug.service';
 import { KnowledgeBaseService } from './knowledge-base.service';
 import { redactAllSecrets, scanForSecrets } from '../utils/secret-scanner';
+import { TimewarpEvent, TimewarpTraceBundle } from '../models/timewarp.model';
 
 const STORAGE_KEY = 'ducktrace_debug_sessions_v1';
 
@@ -327,6 +328,74 @@ export class DebugSessionService {
     this.triggerAiTurn(newSession.id, data.initialMessage || data.description);
 
     return newSession;
+  }
+
+  async importTimewarpTrace(bundle: TimewarpTraceBundle): Promise<DebugSession> {
+    const now = new Date().toISOString();
+    const failures = bundle.trace.events.filter(isFailureEvent);
+    const evidence = bundle.trace.events.map(formatTimewarpEvent).join('\n');
+    const hypotheses: Hypothesis[] = bundle.inspection.diagnostics.map((diagnostic, index) => ({
+      id: `hyp-tw-${Date.now()}-${index}`,
+      title: timewarpDiagnosticTitle(diagnostic.Code),
+      rationale: `${diagnostic.Detail} (evento ${diagnostic.EventID}).`,
+      supportingEvidence: [`Diagnóstico determinístico do Timewarp: ${diagnostic.Code}`],
+      counterEvidence: [],
+      confidence: 'high',
+      status: 'proposed',
+      suggestedTests: [`timewarp replay ${bundle.summary.TraceID} --manifest`],
+      createdAt: now,
+    }));
+    if (hypotheses.length === 0 && failures.length > 0) {
+      const firstFailure = failures[0];
+      hypotheses.push({
+        id: `hyp-tw-${Date.now()}-failure`,
+        title: `A falha se propaga a partir de ${firstFailure.service}`,
+        rationale: formatTimewarpEvent(firstFailure),
+        supportingEvidence: failures.map(formatTimewarpEvent),
+        counterEvidence: [],
+        confidence: 'high', status: 'proposed',
+        suggestedTests: [`timewarp replay ${bundle.summary.TraceID} --manifest`],
+        createdAt: now,
+      });
+    }
+    const imported: DebugSession = {
+      id: `session-timewarp-${Date.now().toString(36)}`,
+      title: `Timewarp: ${bundle.summary.RootService || bundle.summary.TraceID}`,
+      description: `Investigação importada do trace ${bundle.summary.TraceID}. O Timewarp registrou ${bundle.summary.EventCount} eventos em ${bundle.summary.DurationMS} ms, com status ${bundle.summary.Status}.`,
+      mode: bundle.summary.Status === 'ERROR' ? 'incident' : 'debugger',
+      status: 'investigating',
+      environment: {
+        language: 'Não informado', framework: 'Timewarp causal trace', runtime: 'Sistema distribuído',
+        version: bundle.summary.TraceID, os: 'Ambiente local instrumentado',
+        targetEnv: bundle.summary.Status === 'ERROR' ? 'production' : 'local',
+        extraNotes: 'Payloads, cabeçalhos e corpos permaneceram redigidos durante a importação.',
+      },
+      rawLogs: evidence,
+      stackTrace: bundle.inspection.graph,
+      relevantFiles: [],
+      messages: [{
+        id: `msg-timewarp-${Date.now()}`, role: 'system', mode: 'debugger', timestamp: now,
+        content: `Trace ${bundle.summary.TraceID} importado do Timewarp com ${bundle.inspection.event_count} eventos. A análise começou usando somente evidências redigidas e o grafo causal determinístico.`,
+        investigationType: 'fact_check',
+      }],
+      hypotheses,
+      tests: [{
+        id: `test-timewarp-${Date.now()}`,
+        title: 'Preparar replay gravado do trace',
+        command: `timewarp replay ${bundle.summary.TraceID} --manifest`,
+        purpose: 'Gerar um plano recorded-only para reproduzir as respostas capturadas sem contatar a dependência original.',
+        expectedOutput: 'Manifesto de replay contendo somente dependências gravadas.',
+        status: 'pending',
+      }],
+      secretsDetected: [],
+      createdAt: now, updatedAt: now,
+      tags: ['timewarp', 'distributed-systems', bundle.summary.RootService].filter(Boolean),
+    };
+    this.sessionsSignal.update((sessions) => [imported, ...sessions]);
+    this.activeIdSignal.set(imported.id);
+    this.save();
+    void this.triggerAiTurn(imported.id, `Analise o trace causal ${bundle.summary.TraceID}, seus diagnósticos e as falhas HTTP registradas.`);
+    return imported;
   }
 
   async sendUserMessage(content: string) {
@@ -889,5 +958,36 @@ export class DebugSessionService {
       })
     );
     this.save();
+  }
+}
+
+function isFailureEvent(event: TimewarpEvent): boolean {
+  return event.type === 'ERROR' || event.type === 'TIMEOUT' || (event.http?.status_code ?? 0) >= 400;
+}
+
+function formatTimewarpEvent(event: TimewarpEvent): string {
+  const http = event.http;
+  const request = http ? ` ${http.method || 'HTTP'} ${sanitizeTimewarpUrl(http.url || '')}` : '';
+  const status = http?.status_code ? ` → HTTP ${http.status_code}` : '';
+  return `[${event.type}] ${event.service}${request}${status} (${event.duration_ms ?? 0} ms)`;
+}
+
+function sanitizeTimewarpUrl(value: string): string {
+  if (!value) return '';
+  try {
+    const parsed = new URL(value, 'http://timewarp.local');
+    return parsed.origin === 'http://timewarp.local' ? parsed.pathname : `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return value.split('?')[0].split('#')[0];
+  }
+}
+
+function timewarpDiagnosticTitle(code: string): string {
+  switch (code) {
+    case 'ORPHAN': return 'Evento causal sem o evento pai correspondente';
+    case 'CYCLE': return 'Ciclo detectado na cadeia causal';
+    case 'INCONSISTENT_ORDER': return 'Ordenação temporal inconsistente entre eventos';
+    case 'DUPLICATE': return 'Evento duplicado no trace';
+    default: return `Diagnóstico causal do Timewarp: ${code}`;
   }
 }

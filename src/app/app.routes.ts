@@ -6,16 +6,15 @@ export const routes: Routes = [
   {
     path: '',
     component: DebugStudioComponent,
-    title: 'DuckTrace - Collaborative AI Debugger',
+    title: 'Rubber Duck - Collaborative AI Debugger',
   },
   {
     path: 'knowledge-base',
     component: KnowledgeBaseComponent,
-    title: 'Base de Conhecimento Coletiva - DuckTrace',
+    title: 'Base de Conhecimento Coletiva - Rubber Duck',
   },
   {
     path: '**',
     redirectTo: '',
   },
 ];
-

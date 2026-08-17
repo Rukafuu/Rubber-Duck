@@ -10,6 +10,7 @@ import {
   Hypothesis,
   ValidatedSolution,
 } from '../models/debug.model';
+import { classifyTestOutput } from '../utils/test-output-classifier';
 
 @Injectable({
   providedIn: 'root',
@@ -63,12 +64,16 @@ export class AiDebugService {
       return res;
     } catch (error) {
       console.warn('Backend analyze-test failed, using fallback', error);
-      const isError = payload.actualOutput?.toLowerCase().includes('error') || payload.actualOutput?.toLowerCase().includes('failed');
+      const classification = classifyTestOutput(payload.actualOutput);
       return {
-        verdict: isError ? 'supports' : 'contradicts',
+        verdict: classification.verdict,
         analysis: 'Resultado de teste analisado pelo motor local de diagnóstico.',
-        updatedConfidence: isError ? 'high' : 'low',
-        nextStep: isError ? 'Confirmar a causa raiz e finalizar validação' : 'Descartar hipótese e testar próxima possibilidade',
+        updatedConfidence: classification.updatedConfidence,
+        nextStep: classification.hasFailureSignal
+          ? 'Confirmar a causa raiz e finalizar validação'
+          : classification.verdict === 'contradicts'
+            ? 'Descartar hipótese e testar próxima possibilidade'
+            : 'Coletar uma saída mais conclusiva antes de atualizar a hipótese',
       };
     }
   }

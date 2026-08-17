@@ -14,9 +14,13 @@ import { ThemeService } from '../../services/theme.service';
       <!-- Brand & Left Nav -->
       <div class="flex items-center gap-6">
         <a routerLink="/" class="flex items-center gap-2.5 group">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold group-hover:scale-105 transition-transform">
-            <mat-icon class="text-xl">bug_report</mat-icon>
-          </div>
+          <img
+            src="rubber-duck-icon.png"
+            alt=""
+            width="40"
+            height="40"
+            class="w-10 h-10 object-contain group-hover:scale-105 transition-transform"
+          />
           <div>
             <div class="flex items-center gap-1.5 font-bold tracking-tight text-sm text-zinc-100">
               <span>Rubber Duck</span>
@@ -78,11 +82,12 @@ import { ThemeService } from '../../services/theme.service';
         <button
           type="button"
           (click)="themeService.toggle()"
-          class="theme-toggle hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg border transition-colors"
+          class="theme-toggle flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1 text-xs rounded-lg border transition-colors"
           [attr.aria-label]="themeService.theme() === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'"
+          [attr.title]="themeService.theme() === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'"
         >
           <mat-icon class="text-sm">{{ themeService.theme() === 'light' ? 'dark_mode' : 'light_mode' }}</mat-icon>
-          <span>{{ themeService.theme() === 'light' ? 'Escuro' : 'Claro' }}</span>
+          <span class="hidden sm:inline">{{ themeService.theme() === 'light' ? 'Escuro' : 'Claro' }}</span>
         </button>
         <!-- Preset Scenario Quick Loader -->
         <div class="relative group hidden sm:block">

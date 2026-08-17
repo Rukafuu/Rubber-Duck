@@ -9,6 +9,7 @@ import { SolutionPanelComponent } from '../../components/solution-panel/solution
 import { SimilarIssuesPanelComponent } from '../../components/similar-issues-panel/similar-issues-panel.component';
 import { NewSessionModalComponent } from '../../components/new-session-modal/new-session-modal.component';
 import { DebugMode } from '../../models/debug.model';
+import { TimewarpConnectorComponent } from '../../components/timewarp-connector/timewarp-connector.component';
 
 type InspectorTab = 'hypotheses' | 'tests' | 'solution' | 'similar' | 'environment';
 
@@ -24,6 +25,7 @@ type InspectorTab = 'hypotheses' | 'tests' | 'solution' | 'similar' | 'environme
     SolutionPanelComponent,
     SimilarIssuesPanelComponent,
     NewSessionModalComponent,
+    TimewarpConnectorComponent,
   ],
   template: `
     <div class="h-[calc(100vh-3.5rem)] flex flex-col md:flex-row bg-zinc-950 text-zinc-100 overflow-hidden">
@@ -37,13 +39,16 @@ type InspectorTab = 'hypotheses' | 'tests' | 'solution' | 'similar' | 'environme
             <mat-icon class="text-sm text-emerald-400">history</mat-icon>
             <span>Sessões de Investigação</span>
           </div>
-          <button
-            (click)="showNewModal.set(true)"
-            class="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
-            title="Criar nova sessão"
-          >
-            <mat-icon class="text-sm">add</mat-icon>
-          </button>
+          <div class="flex items-center gap-1">
+            <app-timewarp-connector />
+            <button
+              (click)="showNewModal.set(true)"
+              class="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+              title="Criar nova sessão"
+            >
+              <mat-icon class="text-sm">add</mat-icon>
+            </button>
+          </div>
         </div>
 
         <!-- Sessions List -->
@@ -107,8 +112,14 @@ type InspectorTab = 'hypotheses' | 'tests' | 'solution' | 'similar' | 'environme
           </div>
         } @else {
           <div class="flex-1 flex items-center justify-center text-center p-8 text-zinc-500">
-            <div class="space-y-3">
-              <mat-icon class="text-4xl text-zinc-600">science</mat-icon>
+            <div class="space-y-3 flex flex-col items-center">
+              <img
+                src="rubber-duck-logo.png"
+                alt="Rubber Duck"
+                width="176"
+                height="174"
+                class="w-44 h-auto object-contain"
+              />
               <h2 class="text-base font-bold text-zinc-300">Nenhuma sessão selecionada</h2>
               <p class="text-xs max-w-sm">Crie uma nova investigação ou selecione uma sessão no menu lateral.</p>
               <button
