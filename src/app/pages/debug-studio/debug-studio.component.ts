@@ -9,6 +9,7 @@ import { SolutionPanelComponent } from '../../components/solution-panel/solution
 import { SimilarIssuesPanelComponent } from '../../components/similar-issues-panel/similar-issues-panel.component';
 import { NewSessionModalComponent } from '../../components/new-session-modal/new-session-modal.component';
 import { DebugMode } from '../../models/debug.model';
+import { TimewarpConnectorComponent } from '../../components/timewarp-connector/timewarp-connector.component';
 
 type InspectorTab = 'hypotheses' | 'tests' | 'solution' | 'similar' | 'environment';
 
@@ -24,6 +25,7 @@ type InspectorTab = 'hypotheses' | 'tests' | 'solution' | 'similar' | 'environme
     SolutionPanelComponent,
     SimilarIssuesPanelComponent,
     NewSessionModalComponent,
+    TimewarpConnectorComponent,
   ],
   template: `
     <div class="h-[calc(100vh-3.5rem)] flex flex-col md:flex-row bg-zinc-950 text-zinc-100 overflow-hidden">
@@ -37,13 +39,16 @@ type InspectorTab = 'hypotheses' | 'tests' | 'solution' | 'similar' | 'environme
             <mat-icon class="text-sm text-emerald-400">history</mat-icon>
             <span>Sessões de Investigação</span>
           </div>
-          <button
-            (click)="showNewModal.set(true)"
-            class="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
-            title="Criar nova sessão"
-          >
-            <mat-icon class="text-sm">add</mat-icon>
-          </button>
+          <div class="flex items-center gap-1">
+            <app-timewarp-connector />
+            <button
+              (click)="showNewModal.set(true)"
+              class="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+              title="Criar nova sessão"
+            >
+              <mat-icon class="text-sm">add</mat-icon>
+            </button>
+          </div>
         </div>
 
         <!-- Sessions List -->
