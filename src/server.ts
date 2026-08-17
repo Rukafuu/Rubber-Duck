@@ -7,6 +7,7 @@ import {
 import express, { Request, Response } from 'express';
 import { join } from 'node:path';
 import { GoogleGenAI, Type } from '@google/genai';
+import { classifyTestOutput } from './app/utils/test-output-classifier';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -396,13 +397,16 @@ app.post('/api/debug/analyze-test', async (req: Request, res: Response) => {
     const ai = getAI();
 
     if (!ai) {
-      const isError = actualOutput?.toLowerCase().includes('error') || actualOutput?.toLowerCase().includes('failed') || actualOutput?.toLowerCase().includes('err!');
-      const verdict = isError ? 'supports' : 'contradicts';
+      const classification = classifyTestOutput(actualOutput);
       return res.json({
-        verdict,
+        verdict: classification.verdict,
         analysis: `O resultado da execução do teste foi registrado. Com base na saída obtida (${actualOutput?.slice(0, 100)}...), a hipótese "${hypothesis?.title || 'atual'}" ganha novos indícios para avaliação.`,
-        updatedConfidence: isError ? 'high' : 'low',
-        nextStep: isError ? 'Confirmar a causa raiz e elaborar plano de correção' : 'Descartar esta hipótese e testar a próxima causa provável',
+        updatedConfidence: classification.updatedConfidence,
+        nextStep: classification.hasFailureSignal
+          ? 'Confirmar a causa raiz e elaborar plano de correção'
+          : classification.verdict === 'contradicts'
+            ? 'Descartar esta hipótese e testar a próxima causa provável'
+            : 'Coletar uma saída mais conclusiva antes de atualizar a hipótese',
       });
     }
 
@@ -579,4 +583,3 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
  * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
  */
 export const reqHandler = createNodeRequestHandler(app);
-

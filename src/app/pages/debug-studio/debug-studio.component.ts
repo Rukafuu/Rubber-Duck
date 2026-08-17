@@ -107,8 +107,14 @@ type InspectorTab = 'hypotheses' | 'tests' | 'solution' | 'similar' | 'environme
           </div>
         } @else {
           <div class="flex-1 flex items-center justify-center text-center p-8 text-zinc-500">
-            <div class="space-y-3">
-              <mat-icon class="text-4xl text-zinc-600">science</mat-icon>
+            <div class="space-y-3 flex flex-col items-center">
+              <img
+                src="rubber-duck-logo.png"
+                alt="Rubber Duck"
+                width="176"
+                height="174"
+                class="w-44 h-auto object-contain"
+              />
               <h2 class="text-base font-bold text-zinc-300">Nenhuma sessão selecionada</h2>
               <p class="text-xs max-w-sm">Crie uma nova investigação ou selecione uma sessão no menu lateral.</p>
               <button

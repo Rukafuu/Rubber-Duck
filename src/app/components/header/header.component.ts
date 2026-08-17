@@ -14,9 +14,13 @@ import { ThemeService } from '../../services/theme.service';
       <!-- Brand & Left Nav -->
       <div class="flex items-center gap-6">
         <a routerLink="/" class="flex items-center gap-2.5 group">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold group-hover:scale-105 transition-transform">
-            <mat-icon class="text-xl">bug_report</mat-icon>
-          </div>
+          <img
+            src="rubber-duck-icon.png"
+            alt=""
+            width="40"
+            height="40"
+            class="w-10 h-10 object-contain group-hover:scale-105 transition-transform"
+          />
           <div>
             <div class="flex items-center gap-1.5 font-bold tracking-tight text-sm text-zinc-100">
               <span>Rubber Duck</span>

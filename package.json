@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "dev": "cross-env ng serve --port=3000 --host=0.0.0.0 --allowed-hosts=true ${DISABLE_HMR:+--live-reload=false}",
-    "build": "ng build",
+    "build": "ng build && node scripts/prepare-sites.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
@@ -44,6 +44,8 @@
     "tailwindcss": "^4.1.12",
     "typescript": "~5.9.2",
     "typescript-eslint": "8.47.0",
-    "vitest": "^4.0.0"
-  }
+    "vitest": "^4.0.0",
+    "wrangler": "^4.123.0"
+  },
+  "displayName": "Rubber Duck"
 }
