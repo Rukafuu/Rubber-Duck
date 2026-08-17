@@ -1,0 +1,7 @@
+{
+  "name": "DuckTrace - Collaborative AI Debugger",
+  "description": "Structured, collaborative AI-assisted technical debugging platform with explicit hypothesis testing, interactive diagnostics, 4 debug modes, verified solution playbooks, and reusable collective knowledge base.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
