@@ -82,11 +82,12 @@ import { ThemeService } from '../../services/theme.service';
         <button
           type="button"
           (click)="themeService.toggle()"
-          class="theme-toggle hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg border transition-colors"
+          class="theme-toggle flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1 text-xs rounded-lg border transition-colors"
           [attr.aria-label]="themeService.theme() === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'"
+          [attr.title]="themeService.theme() === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro'"
         >
           <mat-icon class="text-sm">{{ themeService.theme() === 'light' ? 'dark_mode' : 'light_mode' }}</mat-icon>
-          <span>{{ themeService.theme() === 'light' ? 'Escuro' : 'Claro' }}</span>
+          <span class="hidden sm:inline">{{ themeService.theme() === 'light' ? 'Escuro' : 'Claro' }}</span>
         </button>
         <!-- Preset Scenario Quick Loader -->
         <div class="relative group hidden sm:block">

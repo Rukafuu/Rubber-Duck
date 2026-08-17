@@ -43,8 +43,19 @@ import { TimewarpService } from '../../services/timewarp.service';
           <div class="p-4 space-y-4 text-xs">
             @if (timewarp.connectionState() !== 'connected') {
               <div class="rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-[11px] text-zinc-400 leading-relaxed">
-                Inicie localmente com <code class="text-sky-300">timewarp bridge</code> e informe o token exibido no terminal. O token fica apenas na memória desta aba.
+                Com o protocolo instalado, o Rubber Duck inicia o bridge local, realiza um pareamento de uso único e solicita o acesso. A aprovação continua no Timewarp, fora do navegador.
               </div>
+              @if (timewarp.error()) {
+                <p class="text-rose-300 bg-rose-950/30 border border-rose-900 rounded-lg p-2">{{ timewarp.error() }}</p>
+              }
+              <button type="button" (click)="autoConnect()" [disabled]="busy()" class="w-full py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 font-semibold flex items-center justify-center gap-2">
+                <mat-icon class="text-sm">rocket_launch</mat-icon>
+                {{ busy() ? 'Aguardando o Timewarp…' : 'Conectar e solicitar acesso' }}
+              </button>
+              <div class="flex items-center gap-3 text-[10px] uppercase tracking-wider text-zinc-600">
+                <span class="h-px bg-zinc-800 flex-1"></span><span>Conexão manual</span><span class="h-px bg-zinc-800 flex-1"></span>
+              </div>
+              <p class="text-[11px] text-zinc-500">Caso o protocolo ainda não esteja instalado, execute <code class="text-zinc-300">timewarp protocol install</code> uma vez.</p>
               <label class="block space-y-1">
                 <span class="text-[11px] font-semibold text-zinc-400">URL local</span>
                 <input [(ngModel)]="bridgeUrl" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 font-mono focus:border-sky-500 outline-none" />
@@ -53,9 +64,6 @@ import { TimewarpService } from '../../services/timewarp.service';
                 <span class="text-[11px] font-semibold text-zinc-400">Token de pareamento</span>
                 <input [(ngModel)]="pairingToken" type="password" autocomplete="off" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 font-mono focus:border-sky-500 outline-none" />
               </label>
-              @if (timewarp.error()) {
-                <p class="text-rose-300 bg-rose-950/30 border border-rose-900 rounded-lg p-2">{{ timewarp.error() }}</p>
-              }
               <button type="button" (click)="connect()" [disabled]="busy()" class="w-full py-2 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 font-semibold">
                 {{ busy() ? 'Conectando…' : 'Conectar ao bridge local' }}
               </button>
@@ -74,6 +82,9 @@ import { TimewarpService } from '../../services/timewarp.service';
                   @if (!timewarp.pendingConsent()) {
                     <button type="button" (click)="requestConsent()" [disabled]="busy()" class="w-full py-2 rounded-lg bg-amber-600 hover:bg-amber-500 disabled:opacity-50 font-semibold text-white">Solicitar acesso temporário</button>
                   } @else {
+                    @if (timewarp.pendingConsent()!.approval_prompted) {
+                      <p class="text-[11px] text-emerald-300 flex items-center gap-1.5"><mat-icon class="text-sm">open_in_new</mat-icon>A confirmação foi aberta pelo Timewarp no seu computador.</p>
+                    }
                     <div class="bg-zinc-950 border border-zinc-800 rounded-lg p-3 space-y-2">
                       <div class="text-[10px] uppercase tracking-wider text-zinc-500">Execute e confirme no terminal</div>
                       <code class="block text-[11px] text-amber-200 break-all">{{ timewarp.pendingConsent()!.operator_action }}</code>
@@ -136,6 +147,10 @@ export class TimewarpConnectorComponent {
       if (this.canReadTraces()) await this.timewarp.searchTraces();
       this.pairingToken = '';
     });
+  }
+
+  async autoConnect(): Promise<void> {
+    await this.run(() => this.timewarp.connectAndRequestAccess());
   }
 
   async requestConsent(): Promise<void> {

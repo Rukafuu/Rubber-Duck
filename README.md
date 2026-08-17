@@ -63,15 +63,19 @@ The SSR server listens on [http://localhost:4000](http://localhost:4000).
 
 Rubber Duck can import redacted causal traces from a local
 [Timewarp](https://github.com/Rukafuu/TimeWarp) database. Build Timewarp and
-start its loopback bridge:
+register its cross-platform URL handler once:
 
 ```bash
-timewarp bridge
+timewarp protocol install --db ./timewarp.db
 ```
 
-In Rubber Duck, select **Connect to Timewarp**, enter the displayed temporary
-token, and request `trace:read`. The browser cannot approve its own request;
-review and activate it from another terminal with `timewarp consent approve`.
+In Rubber Duck, select **Connect to Timewarp** and choose **Connect and request
+access**. On Windows, Linux, and macOS, the browser launches the local handler,
+starts or reuses the loopback bridge, performs one-time pairing, and requests
+`trace:read`. Timewarp opens the approval command locally. The browser cannot
+approve its own request: review the scope and reason, then type the exact grant
+ID in the Timewarp terminal. Manual URL-and-token pairing remains available.
+
 Imported traces become investigation evidence, causal diagnostics become
 hypotheses, and the recorded-only replay command is added as a proposed test.
 

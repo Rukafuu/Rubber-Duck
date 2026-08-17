@@ -17,6 +17,7 @@ export interface TimewarpConsentRequest {
   reason: string;
   operator_action: string;
   audit_trace_id: string;
+  approval_prompted?: boolean;
 }
 
 export interface TimewarpTraceSummary {

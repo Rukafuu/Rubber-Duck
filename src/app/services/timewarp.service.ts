@@ -43,6 +43,36 @@ export class TimewarpService {
     }
   }
 
+  async connectAndRequestAccess(): Promise<void> {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      throw new Error('A conexão automática com o Timewarp requer um navegador.');
+    }
+    this.connectionState.set('connecting');
+    this.error.set('');
+    this.baseUrl = 'http://127.0.0.1:7779';
+    try {
+      const challenge = createPairingChallenge();
+      launchTimewarpProtocol(window.location.origin, challenge);
+      const pairing = await this.waitForPairing(challenge);
+      this.pairingToken = pairing.token;
+      await this.get<{ status: string }>('/v1/health');
+      await this.refreshCapabilities();
+      this.connectionState.set('connected');
+      if (!this.capabilities()?.approved_scopes.includes('trace:read')) {
+        await this.requestTraceConsent();
+        void this.pollUntilTraceAccess();
+      } else {
+        await this.searchTraces();
+      }
+    } catch (error) {
+      this.disconnect();
+      this.connectionState.set('error');
+      const message = readableError(error);
+      this.error.set(message);
+      throw new Error(message);
+    }
+  }
+
   disconnect(): void {
     this.baseUrl = '';
     this.pairingToken = '';
@@ -101,6 +131,36 @@ export class TimewarpService {
     }).pipe(timeout(7000)));
   }
 
+  private async waitForPairing(challenge: string): Promise<{ token: string }> {
+    const deadline = Date.now() + 20_000;
+    while (Date.now() < deadline) {
+      try {
+        return await firstValueFrom(this.http.get<{ token: string }>(`${this.baseUrl}/v1/pair`, {
+          params: new HttpParams({ fromObject: { challenge } }),
+        }).pipe(timeout(1500)));
+      } catch {
+        await delay(500);
+      }
+    }
+    throw new Error('O Timewarp não iniciou. Instale o protocolo com `timewarp protocol install` e tente novamente.');
+  }
+
+  private async pollUntilTraceAccess(): Promise<void> {
+    const deadline = Date.now() + 2 * 60_000;
+    while (Date.now() < deadline && this.connectionState() === 'connected') {
+      await delay(1000);
+      try {
+        const capabilities = await this.refreshCapabilities();
+        if (capabilities.approved_scopes.includes('trace:read')) {
+          await this.searchTraces();
+          return;
+        }
+      } catch {
+        // A concessão pode estar sendo confirmada no terminal local.
+      }
+    }
+  }
+
   private headers(): HttpHeaders {
     return new HttpHeaders({ Authorization: `Bearer ${this.pairingToken}` });
   }
@@ -117,6 +177,25 @@ function normalizeLoopbackUrl(value: string): string {
 function cryptoSafeId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function createPairingChallenge(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (value) => value.toString(16).padStart(2, '0')).join('');
+}
+
+function launchTimewarpProtocol(origin: string, challenge: string): void {
+  const link = document.createElement('a');
+  link.href = `timewarp://pair?origin=${encodeURIComponent(origin)}&challenge=${encodeURIComponent(challenge)}`;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+function delay(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 function readableError(error: unknown): string {

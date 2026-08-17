@@ -38,4 +38,38 @@ describe('TimewarpService', () => {
     await expect(service.connect('https://timewarp.example', 'token')).rejects.toThrow(/URL HTTP local/);
     expect(service.connectionState()).toBe('error');
   });
+
+  it('launches timewarp:// and exchanges a one-time challenge for a token', async () => {
+    const launch = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    const connecting = service.connectAndRequestAccess();
+    expect(launch).toHaveBeenCalledOnce();
+
+    const pairing = http.expectOne((request) => request.url === 'http://127.0.0.1:7779/v1/pair');
+    expect(pairing.request.headers.has('Authorization')).toBe(false);
+    expect(pairing.request.params.get('challenge')?.length).toBe(64);
+    pairing.flush({ token: 'one-time-token' });
+
+    await nextTask();
+    const health = http.expectOne('http://127.0.0.1:7779/v1/health');
+    expect(health.request.headers.get('Authorization')).toBe('Bearer one-time-token');
+    health.flush({ status: 'ok' });
+
+    await nextTask();
+    const capabilities = http.expectOne((request) => request.url.endsWith('/v1/capabilities'));
+    capabilities.flush({
+      actor: 'rubber-duck', approved_scopes: ['trace:read'], supported_scopes: ['trace:read'],
+      consent_mode: 'operator-approved-temporary-grants', mutation_tools: false,
+      audit_trace_prefix: 'agent-session:',
+    });
+
+    await nextTask();
+    const traces = http.expectOne((request) => request.url.endsWith('/v1/traces'));
+    traces.flush({ traces: [] });
+    await connecting;
+    expect(service.connectionState()).toBe('connected');
+  });
 });
+
+function nextTask(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
